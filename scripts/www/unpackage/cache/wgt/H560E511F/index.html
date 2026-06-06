@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title></title>
+    <script type="text/javascript">
+    	
+   		document.addEventListener('plusready', function(){
+   			//console.log("所有plus api都应该在此事件发生后调用，否则会出现plus is undefined。")
+   			
+   		});
+   		
+    </script>
+</head>
+<body>
+	
+</body>
+</html>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>保存图片测试</title>
+    <style>
+        body {
+            background-color: #FAF7F4;
+            font-family: -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #3D322C;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        #preview {
+            width: 300px;
+            height: 300px;
+            background-color: #FFFFFF;
+            border: 2px solid #E8D5C4;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #9B8579;
+        }
+        #preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 12px;
+        }
+        .btn {
+            width: 100%;
+            max-width: 300px;
+            height: 50px;
+            background-color: #D4A574;
+            color: #fff;
+            border-radius: 25px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn:active {
+            transform: scale(0.95);
+            opacity: 0.8;
+        }
+        #log {
+            margin-top: 20px;
+            padding: 12px;
+            background-color: #FFF8F0;
+            border: 1px solid #E8D5C4;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 300px;
+            font-size: 12px;
+            color: #6B6B6B;
+            word-break: break-all;
+            min-height: 40px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📸 保存图片测试</h1>
+    <div id="preview">等待生成...</div>
+    <button class="btn" id="btnGenerate">生成并保存到相册</button>
+    <div id="log">点击按钮开始测试</div>
+
+    <script>
+        (function() {
+            const preview = document.getElementById('preview');
+            const log = document.getElementById('log');
+
+            function showLog(msg, isError = false) {
+                log.innerHTML = (isError ? '❌ ' : '✅ ') + msg;
+            }
+
+            document.getElementById('btnGenerate').addEventListener('click', function() {
+                this.disabled = true;
+                this.textContent = '正在处理...';
+                showLog('正在生成图片...');
+
+                // 1. 创建 Canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = 400;
+                canvas.height = 400;
+                const ctx = canvas.getContext('2d');
+
+                // 绘制背景
+                ctx.fillStyle = '#FAF7F4';
+                ctx.fillRect(0, 0, 400, 400);
+
+                // 绘制边框
+                ctx.strokeStyle = '#D4A574';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(2, 2, 396, 396);
+
+                // 绘制文字
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#3D322C';
+                ctx.font = 'bold 32px sans-serif';
+                ctx.fillText('✨ 惜物', 200, 170);
+
+                ctx.fillStyle = '#9B8579';
+                ctx.font = '20px sans-serif';
+                ctx.fillText('测试图片保存功能', 200, 230);
+
+                ctx.fillStyle = '#D4C8BC';
+                ctx.font = '16px sans-serif';
+                ctx.fillText('惜 物', 200, 370);
+
+                // 2. 预览
+                preview.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL('image/png');
+                preview.appendChild(img);
+
+                // 3. 保存到相册（核心）
+                // 将 Canvas 转为 Blob
+                canvas.toBlob(function(blob) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const arrayBuffer = e.target.result;
+                        
+                        // 写入应用私有目录 _doc
+                        const fileName = 'save_test_' + Date.now() + '.png';
+                        const filePath = '_doc/' + fileName;
+
+                        // 使用 plus.io.writeFile 写入二进制数据
+                        plus.io.writeFile(filePath, arrayBuffer, function() {
+                            // 写入成功，调用 plus.gallery.save 传入文件路径
+                            plus.gallery.save(filePath, function() {
+                                showLog('已成功保存到相册！');
+                                document.getElementById('btnGenerate').disabled = false;
+                                document.getElementById('btnGenerate').textContent = '生成并保存到相册';
+                            }, function(e) {
+                                showLog('保存失败: ' + e.message, true);
+                                document.getElementById('btnGenerate').disabled = false;
+                                document.getElementById('btnGenerate').textContent = '生成并保存到相册';
+                            });
+                        }, function(e) {
+                            showLog('写入文件失败: ' + e.message, true);
+                            document.getElementById('btnGenerate').disabled = false;
+                            document.getElementById('btnGenerate').textContent = '生成并保存到相册';
+                        });
+                    };
+                    reader.readAsArrayBuffer(blob);
+                }, 'image/png');
+            });
+        })();
+    </script>
+</body>
+</html>
